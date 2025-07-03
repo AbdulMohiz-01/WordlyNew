@@ -113,7 +113,13 @@ function handleKeyPress(e) {
     const key = e.key.toUpperCase();
     
     // Add visual feedback for the pressed key
-    const keyElement = document.querySelector(`[data-key="${key}"]`);
+    let keyElement;
+    if (key === 'BACKSPACE') {
+        keyElement = document.querySelector('[data-key="⌫"]');
+    } else {
+        keyElement = document.querySelector(`[data-key="${key}"]`);
+    }
+    
     if (keyElement) {
         keyElement.classList.add('pressed');
         setTimeout(() => {
@@ -133,12 +139,19 @@ function handleKeyPress(e) {
 function handleKeyboardClick(e) {
     if (gameOver || isValidating) return;
     
-    const key = e.target.getAttribute('data-key');
+    const key = e.target.closest('.key')?.getAttribute('data-key');
     if (!key) return;
+    
+    // Add visual feedback
+    const keyElement = e.target.closest('.key');
+    keyElement.classList.add('pressed');
+    setTimeout(() => {
+        keyElement.classList.remove('pressed');
+    }, 150);
     
     if (key === 'ENTER') {
         submitGuess();
-    } else if (key === 'BACKSPACE') {
+    } else if (key === '⌫') {
         deleteLetter();
     } else {
         addLetter(key);
