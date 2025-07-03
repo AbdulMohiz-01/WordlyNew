@@ -66,8 +66,6 @@ function initGame() {
     
     // Clear message
     hideMessage();
-    
-    console.log('New game started. Word:', currentWord); // For debugging
 }
 
 function setupEventListeners() {
