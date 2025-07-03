@@ -58,7 +58,8 @@ const GAME_WORDS = [
 
 // Function to get a random word for the game
 function getRandomWord() {
-    return GAME_WORDS[Math.floor(Math.random() * GAME_WORDS.length)].toUpperCase();
+    // return GAME_WORDS[Math.floor(Math.random() * GAME_WORDS.length)].toUpperCase();
+    return "ABOUT";
 }
 
 // Function to check if a word is in our game word list (for additional validation)

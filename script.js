@@ -45,11 +45,17 @@ function initGame() {
     gameOver = false;
     isValidating = false;
     
-    // Clear the board
+    // Clear the board and remove all game end animations
+    gameBoard.classList.remove('win', 'lose');
     const tiles = document.querySelectorAll('.tile');
     tiles.forEach(tile => {
         tile.textContent = '';
         tile.className = 'tile';
+    });
+    
+    // Remove lose class from rows
+    document.querySelectorAll('.tile-row').forEach(row => {
+        row.classList.remove('lose');
     });
     
     // Reset keyboard
@@ -105,6 +111,15 @@ function handleKeyPress(e) {
     if (gameOver || isValidating) return;
     
     const key = e.key.toUpperCase();
+    
+    // Add visual feedback for the pressed key
+    const keyElement = document.querySelector(`[data-key="${key}"]`);
+    if (keyElement) {
+        keyElement.classList.add('pressed');
+        setTimeout(() => {
+            keyElement.classList.remove('pressed');
+        }, 150);
+    }
     
     if (key === 'ENTER') {
         submitGuess();
@@ -187,7 +202,14 @@ async function submitGuess() {
         gameOver = true;
         showMessage('Congratulations! 🎉', 'success');
         updateStatistics(true, currentRow + 1);
-        createConfetti();
+        
+        // Add win animations
+        const winningRow = document.querySelector(`[data-row="${currentRow}"]`);
+        winningRow.querySelectorAll('.tile').forEach(tile => {
+            tile.classList.add('win');
+        });
+        gameBoard.classList.add('win');
+        
         setTimeout(() => {
             showGameOverModal(true);
         }, 2000);
@@ -202,8 +224,16 @@ async function submitGuess() {
     // Check lose condition
     if (currentRow >= 6) {
         gameOver = true;
-        showMessage(`Game Over! The word was: ${currentWord}`, 'error');
+        
+        // Add lose animations
+        gameBoard.classList.add('lose');
+        const lastRow = document.querySelector(`[data-row="${currentRow - 1}"]`);
+        lastRow.classList.add('lose');
+        
+        // Show dramatic message with the word
+        showMessage(`The word was ${currentWord}... Don't give up!`, 'error');
         updateStatistics(false, 0);
+        
         setTimeout(() => {
             showGameOverModal(false);
         }, 2000);
@@ -347,10 +377,17 @@ function hideModal(modalId) {
 }
 
 function showGameOverModal(won) {
-    gameOverTitle.textContent = won ? 'Congratulations!' : 'Game Over';
-    gameOverMessage.innerHTML = won ? 
-        `You found the word <strong>${currentWord}</strong> in ${currentRow + 1} ${currentRow === 0 ? 'try' : 'tries'}!` :
-        `The word was <strong>${currentWord}</strong>. Better luck next time!`;
+    const modal = document.getElementById('game-over-modal');
+    const title = document.getElementById('game-over-title');
+    const message = document.getElementById('game-over-message');
+    
+    if (won) {
+        title.textContent = 'Congratulations!';
+        message.textContent = `You found the word in ${currentRow + 1} ${currentRow === 0 ? 'try' : 'tries'}!`;
+    } else {
+        title.textContent = 'Game Over';
+        message.textContent = `The word was: ${currentWord}`;
+    }
     
     updateGameOverStats();
     showModal('game-over-modal');
