@@ -1,0 +1,106 @@
+/* Epic Win Animations - Golden dancing letters */
+.tile.win {
+  animation: goldenPulse 2s ease infinite;
+  box-shadow: 0 0 20px rgba(255, 223, 0, 0.8);
+  z-index: 10;
+  border-color: #ffd700;
+  background-color: #ffd700;
+  color: transparent !important; /* Hide the original text */
+  font-weight: bold;
+  text-shadow: 0 0 10px rgba(255, 215, 0, 0.8);
+  border-width: 3px;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Dancing letters inside the tile */
+.tile.win::before {
+  content: attr(data-letter);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+  line-height: 1;
+  font-weight: bold;
+  animation: letterDance 1s ease-in-out infinite;
+  text-shadow: 0 0 10px rgba(255, 215, 0, 0.8);
+  color: #222 !important;
+}
+
+/* Dancing letters animation */
+@keyframes letterDance {
+  0%, 100% { transform: scale(1); }
+  25% { transform: scale(1.2) rotate(-5deg); }
+  50% { transform: scale(1.4) rotate(5deg); }
+  75% { transform: scale(1.2) rotate(-3deg); }
+}
+
+/* Golden pulse animation - exactly 2 pulses */
+@keyframes goldenPulse {
+  0%, 33%, 67%, 100% {
+    box-shadow: 
+      0 0 30px rgba(255, 223, 0, 0.7),
+      0 0 60px rgba(255, 215, 0, 0.5),
+      inset 0 0 20px rgba(255, 223, 0, 0.4);
+    background-color: #ffd700;
+    border-color: #ffd700;
+  }
+  16.5%, 50%, 83.5% {
+    box-shadow: 
+      0 0 50px rgba(255, 223, 0, 0.9),
+      0 0 80px rgba(255, 215, 0, 0.7),
+      inset 0 0 40px rgba(255, 223, 0, 0.6);
+    background-color: #ffec80;
+    border-color: #ffffff;
+    border-width: 5px;
+  }
+}
+
+/* Confetti animation */
+.confetti {
+  position: fixed;
+  top: -10vh;
+  z-index: 9999;
+  pointer-events: none;
+  animation: confetti-fall 5s linear forwards;
+}
+
+.confetti-piece {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  animation: confetti-spin 3s linear infinite;
+}
+
+/* Star animation */
+.star {
+  display: inline-block;
+  animation: starTwinkle 1s ease-in-out infinite;
+}
+
+@keyframes starTwinkle {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.7; transform: scale(1.2); }
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes confetti-fall {
+  0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+  80% { opacity: 1; }
+  100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+}
+
+@keyframes confetti-spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+} 

@@ -1,0 +1,37 @@
+/* Border Pulse Animation */
+.tile.win {
+  position: relative !important;
+  z-index: 10 !important;
+  overflow: visible !important;
+}
+
+/* Border pulse effect using pseudo-element */
+.tile.win::after {
+  content: '' !important;
+  position: absolute !important;
+  top: -3px !important;
+  left: -3px !important;
+  right: -3px !important;
+  bottom: -3px !important;
+  border: 3px solid #ffd700 !important;
+  border-radius: 4px !important;
+  animation: borderPulseNew 4s ease-in-out !important;
+  z-index: 5 !important; /* Lower z-index so it doesn't cover the letter */
+  pointer-events: none !important;
+}
+
+/* Golden border pulse effect - exactly 2 pulses */
+@keyframes borderPulseNew {
+  0%, 33%, 67%, 100% {
+    border-color: #ffd700 !important;
+    border-width: 3px !important;
+    box-shadow: 0 0 10px rgba(255, 223, 0, 0.6) !important;
+    opacity: 1 !important;
+  }
+  16.5%, 50%, 83.5% {
+    border-color: #ffffff !important;
+    border-width: 5px !important;
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.9) !important;
+    opacity: 1 !important;
+  }
+} 

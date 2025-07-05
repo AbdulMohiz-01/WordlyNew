@@ -1,0 +1,108 @@
+.tile {
+  width: 62px;
+  height: 62px;
+  border: 2px solid #3a3a3c;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+  font-weight: bold;
+  text-transform: uppercase;
+  background: #1a1a1a;
+  color: #fff;
+  border-radius: 4px;
+  transition: transform 0.15s ease, border-color 0.15s ease;
+  position: relative;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  cursor: default;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  perspective: 1000px;
+  transform-style: preserve-3d;
+}
+
+.tile:not(.filled):hover {
+  transform: scale(1.05);
+  border-color: #565758;
+}
+
+.tile.filled {
+  border-color: #565758;
+  animation: tileScale 0.1s ease;
+}
+
+.tile.correct {
+  background: #6aaa64;
+  border-color: #6aaa64;
+  color: white;
+  animation: flipCorrect 0.4s ease-in-out;
+}
+
+.tile.present {
+  background: #c9b458;
+  border-color: #c9b458;
+  color: white;
+  animation: flipPresent 0.4s ease-in-out;
+}
+
+.tile.absent {
+  background: #3a3a3c;
+  border-color: #3a3a3c;
+  color: white;
+  animation: flipAbsent 0.4s ease-in-out;
+}
+
+/* Tile Animations */
+@keyframes tileScale {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+
+@keyframes flipCorrect {
+  0% { transform: rotateX(0); background: #1a1a1a; border-color: #565758; }
+  45% { transform: rotateX(90deg); background: #1a1a1a; border-color: #565758; }
+  55% { transform: rotateX(90deg); background: #6aaa64; border-color: #6aaa64; }
+  100% { transform: rotateX(0); background: #6aaa64; border-color: #6aaa64; }
+}
+
+@keyframes flipPresent {
+  0% { transform: rotateX(0); background: #1a1a1a; border-color: #565758; }
+  45% { transform: rotateX(90deg); background: #1a1a1a; border-color: #565758; }
+  55% { transform: rotateX(90deg); background: #c9b458; border-color: #c9b458; }
+  100% { transform: rotateX(0); background: #c9b458; border-color: #c9b458; }
+}
+
+@keyframes flipAbsent {
+  0% { transform: rotateX(0); background: #1a1a1a; border-color: #565758; }
+  45% { transform: rotateX(90deg); background: #1a1a1a; border-color: #565758; }
+  55% { transform: rotateX(90deg); background: #3a3a3c; border-color: #3a3a3c; }
+  100% { transform: rotateX(0); background: #3a3a3c; border-color: #3a3a3c; }
+}
+
+/* Bounce animation for winning */
+.bounce {
+  animation: bounce 0.4s ease-in-out;
+}
+
+@keyframes bounce {
+  0%, 20%, 60%, 100% { transform: translateY(0); }
+  40% { transform: translateY(-20px); }
+  80% { transform: translateY(-10px); }
+}
+
+@media (max-width: 480px) {
+  .tile {
+    width: 58px;
+    height: 58px;
+    font-size: 28px;
+  }
+}
+
+@media (max-width: 380px) {
+  .tile {
+    width: 50px;
+    height: 50px;
+    font-size: 24px;
+  }
+} 
