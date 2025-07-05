@@ -25,13 +25,29 @@
   width: 100%;
 }
 
+/* First row (QWERTYUIOP) should be centered */
+.keyboard-row:first-child {
+  padding: 0 12px;
+}
+
+/* Second row (ASDFGHJKL) should be centered with more padding */
+.keyboard-row:nth-child(2) {
+  padding: 0 28px;
+}
+
+/* Last row needs specific width distribution */
+.keyboard-row:last-child {
+  padding: 0;
+}
+
 .key {
   height: 52px;
-  flex: 1;
+  width: 100%;
+  max-width: 40px;
   display: flex;
   justify-content: center;
   align-items: center;
-  border-radius: 4px;
+  border-radius: 6px;
   background-color: #818384;
   color: white;
   font-weight: bold;
@@ -39,10 +55,11 @@
   user-select: none;
   text-transform: uppercase;
   border: none;
-  font-size: 14px;
+  font-size: 16px;
   transition: all 0.2s ease;
-  min-width: 0;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+  position: relative;
+  overflow: hidden;
 }
 
 .key-spacer {
@@ -53,14 +70,37 @@
   background-color: #6e7071;
 }
 
-.key:active {
+.key:active, .key.pressed {
   transform: scale(0.95);
   box-shadow: 0 0 1px rgba(0, 0, 0, 0.3);
+  background-color: #a8a8a9;
+}
+
+/* Flash effect for physical keyboard presses */
+@keyframes keyHighlight {
+  0% { background-color: #818384; }
+  50% { background-color: #b5b5b6; }
+  100% { background-color: #818384; }
+}
+
+.key.highlight {
+  animation: keyHighlight 0.3s ease-in-out;
 }
 
 .key-large {
-  flex: 1.5;
-  font-size: 12px;
+  max-width: unset;
+  font-size: 14px;
+}
+
+/* Make ENTER key larger than other keys */
+.keyboard-row:last-child .key:first-child {
+  max-width: 65px;
+  font-size: 14px;
+}
+
+/* Make backspace key larger than other keys */
+.keyboard-row:last-child .key:last-child {
+  max-width: 65px;
 }
 
 .key.correct {
@@ -86,7 +126,7 @@
 @media (max-width: 500px) {
   .keyboard {
     padding: 6px 4px;
-    gap: 4px;
+    gap: 5px;
     max-width: 100%;
   }
   
@@ -94,9 +134,20 @@
     gap: 3px;
   }
   
+  /* First row (QWERTYUIOP) should be centered */
+  .keyboard-row:first-child {
+    padding: 0 8px;
+  }
+  
+  /* Second row (ASDFGHJKL) should be centered with more padding */
+  .keyboard-row:nth-child(2) {
+    padding: 0 24px;
+  }
+  
   .key {
-    height: 48px;
-    font-size: 13px;
+    height: 52px;
+    font-size: 15px;
+    max-width: 36px;
   }
   
   .key svg {
@@ -107,31 +158,61 @@
 
 @media (max-width: 480px) {
   .key {
-    min-width: 28px;
-    height: 50px;
-    font-size: 12px;
+    max-width: 34px;
+    height: 52px;
+    font-size: 14px;
   }
   
   .key-large {
-    min-width: 50px;
-    font-size: 11px;
+    max-width: unset;
+    font-size: 13px;
+  }
+  
+  /* Make ENTER key larger than other keys */
+  .keyboard-row:last-child .key:first-child {
+    max-width: 65px;
+  }
+  
+  /* Make backspace key larger than other keys */
+  .keyboard-row:last-child .key:last-child {
+    max-width: 55px;
   }
 }
 
 @media (max-width: 380px) {
   .key {
-    min-width: 24px;
-    height: 45px;
-    font-size: 11px;
-    border-radius: 3px;
+    max-width: 30px;
+    height: 48px;
+    font-size: 13px;
+    border-radius: 5px;
   }
   
   .key-large {
-    min-width: 42px;
-    font-size: 10px;
+    max-width: unset;
+    font-size: 12px;
   }
   
   .keyboard-row {
-    gap: 4px;
+    gap: 3px;
+  }
+  
+  /* First row (QWERTYUIOP) should be centered */
+  .keyboard-row:first-child {
+    padding: 0 4px;
+  }
+  
+  /* Second row (ASDFGHJKL) should be centered with more padding */
+  .keyboard-row:nth-child(2) {
+    padding: 0 20px;
+  }
+  
+  /* Make ENTER key larger than other keys */
+  .keyboard-row:last-child .key:first-child {
+    max-width: 60px;
+  }
+  
+  /* Make backspace key larger than other keys */
+  .keyboard-row:last-child .key:last-child {
+    max-width: 50px;
   }
 } 
