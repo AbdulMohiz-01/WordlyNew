@@ -19,6 +19,8 @@
   -webkit-tap-highlight-color: transparent;
   perspective: 1000px;
   transform-style: preserve-3d;
+  z-index: 50;
+  pointer-events: auto;
 }
 
 .tile:not(.filled):hover {

@@ -1,5 +1,6 @@
 // Curated list of 5-letter words for Wordly game
 export const GAME_WORDS: string[] = [
+    // --- Original Words ---
     "about", "above", "abuse", "actor", "acute", "admit", "adopt", "adult", "after", "again",
     "agent", "agree", "ahead", "alarm", "album", "alert", "alien", "align", "alive", "allow",
     "alone", "along", "alter", "among", "anger", "angle", "angry", "apart", "apple", "apply",
@@ -39,21 +40,33 @@ export const GAME_WORDS: string[] = [
     "sense", "serve", "setup", "seven", "shall", "shape", "share", "sharp", "sheet", "shelf",
     "shell", "shift", "shine", "shirt", "shock", "shoot", "short", "shown", "sides", "sight",
     "silly", "since", "sixth", "sixty", "sized", "skill", "sleep", "slide", "small", "smart",
-    "smile", "smith", "smoke", "snake", "snow", "so", "soap", "soccer", "social", "soft",
-    "solar", "solid", "solve", "sorry", "sound", "south", "space", "spare", "speak", "speed",
-    "spend", "spent", "split", "spoke", "sport", "staff", "stage", "stake", "stand", "start",
-    "state", "steam", "steel", "stick", "still", "stock", "stone", "stood", "store", "storm",
-    "story", "strip", "stuck", "study", "stuff", "style", "sugar", "suite", "super", "sweet",
-    "table", "taken", "taste", "taxes", "teach", "teeth", "terry", "texas", "thank", "theft",
-    "their", "theme", "there", "these", "thick", "thing", "think", "third", "those", "three",
-    "threw", "throw", "thumb", "tiger", "tight", "timer", "tired", "title", "today", "topic",
-    "total", "touch", "tough", "tower", "track", "trade", "train", "treat", "trend", "trial",
-    "tribe", "trick", "tried", "tries", "truck", "truly", "trunk", "trust", "truth", "twice",
-    "uncle", "under", "undue", "union", "unity", "until", "upper", "upset", "urban", "usage",
-    "usual", "valid", "value", "video", "virus", "visit", "vital", "vocal", "voice", "waste",
-    "watch", "water", "wheel", "where", "which", "while", "white", "whole", "whose", "woman",
-    "women", "world", "worry", "worse", "worst", "worth", "would", "write", "wrong", "wrote",
-    "young", "youth", "equal", "wheat", "forth", "metal", "beach", "inner", "steam", "royal"
+    "smile", "smith", "smoke", "snake", "snow", "soap", "solar", "solid", "solve", "sorry",
+    "sound", "south", "space", "spare", "speak", "speed", "spend", "spent", "split", "spoke",
+    "sport", "staff", "stage", "stake", "stand", "start", "state", "steam", "steel", "stick",
+    "still", "stock", "stone", "stood", "store", "storm", "story", "strip", "stuck", "study",
+    "stuff", "style", "sugar", "suite", "super", "sweet", "table", "taken", "taste", "taxes",
+    "teach", "teeth", "terry", "texas", "thank", "theft", "their", "theme", "there", "these",
+    "thick", "thing", "think", "third", "those", "three", "threw", "throw", "thumb", "tiger",
+    "tight", "timer", "tired", "title", "today", "topic", "total", "touch", "tough", "tower",
+    "track", "trade", "train", "treat", "trend", "trial", "tribe", "trick", "tried", "tries",
+    "truck", "truly", "trunk", "trust", "truth", "twice", "uncle", "under", "undue", "union",
+    "unity", "until", "upper", "upset", "urban", "usage", "usual", "valid", "value", "video",
+    "virus", "visit", "vital", "vocal", "voice", "waste", "watch", "water", "wheel", "where",
+    "which", "while", "white", "whole", "whose", "woman", "women", "world", "worry", "worse",
+    "worst", "worth", "would", "write", "wrong", "wrote", "young", "youth", "equal", "wheat",
+    "forth", "metal", "beach", "inner", "steam", "royal",
+
+    // --- Additional 100 Words ---
+    "abbey", "adore", "aisle", "alike", "alley", "angel", "ankle", "aroma", "atlas", "attic",
+    "audit", "aunty", "avail", "badge", "banjo", "batch", "beard", "beast", "belly", "berth",
+    "bingo", "bleed", "bless", "blink", "bluff", "blush", "bored", "brace", "bride", "brook",
+    "brute", "bunny", "burst", "cabin", "candy", "canal", "cargo", "carol", "carve", "cease",
+    "chalk", "chant", "chess", "chill", "choir", "clerk", "cliff", "cling", "couch", "cower",
+    "crate", "creep", "crisp", "crust", "curly", "curse", "daunt", "debit", "decay", "deity",
+    "dense", "ditch", "donor", "dough", "dread", "drift", "elbow", "envoy", "epoch", "evoke",
+    "exile", "feast", "fetch", "fibre", "fiery", "flick", "flora", "flush", "frail", "gauge",
+    "ghost", "gleam", "gnome", "grape", "grief", "grind", "groan", "gruff", "guilt", "guise",
+    "habit", "haunt", "hinge", "honey"
 ];
 
 // Function to get a random word for the game
@@ -64,4 +77,4 @@ export const getRandomWord = (): string => {
 // Function to check if a word is in our game word list (for additional validation)
 export const isGameWord = (word: string): boolean => {
     return GAME_WORDS.includes(word.toLowerCase());
-}; 
+};

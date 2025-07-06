@@ -1,6 +1,10 @@
 import { createContext, useState, useEffect } from 'react';
-import type { ReactNode } from 'react';
-import { getRandomWord, isGameWord } from '../utils/words';
+import type { ReactNode, MouseEvent } from 'react';
+import { isGameWord } from '../utils/words';
+import { getWordByDifficulty } from '../utils/wordService';
+import type { DifficultyLevel } from '../utils/wordService';
+import { UserService } from '../services/UserService';
+import type { UserData } from '../components/UserRegistrationModal';
 
 // Define types for our game state
 export type TileState = 'empty' | 'filled' | 'correct' | 'present' | 'absent';
@@ -36,21 +40,31 @@ interface GameContextType {
   // Game statistics
   stats: GameStats;
   
+  // Difficulty settings
+  difficulty: DifficultyLevel;
+  setDifficulty: (difficulty: DifficultyLevel) => void;
+  
   // Game actions
   addLetter: (letter: string) => void;
   deleteLetter: () => void;
   submitGuess: () => Promise<void>;
-  startNewGame: () => void;
+  startNewGame: (newDifficultyOrEvent?: DifficultyLevel | MouseEvent) => Promise<void>;
   
   // Modal states
   showHelpModal: boolean;
   showStatsModal: boolean;
   showGameOverModal: boolean;
+  showUserRegistrationModal: boolean;
   
   // Modal actions
   toggleHelpModal: () => void;
   toggleStatsModal: () => void;
   hideGameOverModal: () => void;
+  
+  // User registration
+  isUserRegistered: boolean;
+  currentUserName: string | null;
+  registerUser: (userData: UserData) => Promise<void>;
 }
 
 // Create context with default values
@@ -69,6 +83,9 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
   const [isAnimating, setIsAnimating] = useState<boolean>(false);
   const [lockedRows, setLockedRows] = useState<number[]>([]);
   const [message, setMessage] = useState<{ text: string; type: 'success' | 'error' | 'info' | '' }>({ text: '', type: '' });
+  
+  // Difficulty settings
+  const [difficulty, setDifficulty] = useState<DifficultyLevel>('medium');
   
   // Board state - 6 rows of 5 tiles
   const [board, setBoard] = useState<Tile[][]>(
@@ -89,41 +106,153 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
   const [showHelpModal, setShowHelpModal] = useState<boolean>(false);
   const [showStatsModal, setShowStatsModal] = useState<boolean>(false);
   const [showGameOverModal, setShowGameOverModal] = useState<boolean>(false);
+  const [showUserRegistrationModal, setShowUserRegistrationModal] = useState<boolean>(false);
   
-  // Initialize game on component mount
+  // User registration state
+  const [isUserRegistered, setIsUserRegistered] = useState<boolean>(false);
+  const [currentUserName, setCurrentUserName] = useState<string | null>(null);
+  
+  // Initialize component on mount
   useEffect(() => {
-    initGame();
-    loadStatistics();
+    const initialize = async () => {
+      // Check if user is registered
+      const isRegistered = UserService.isUserRegistered();
+      setIsUserRegistered(isRegistered);
+      
+      if (isRegistered) {
+        // Load user name
+        const userName = UserService.getCurrentUserName();
+        setCurrentUserName(userName);
+        
+        // Initialize game only if user is registered
+        await initGame();
+        loadStatistics();
+        
+        // Track session
+        const userId = UserService.getCurrentUserId();
+        if (userId) {
+          UserService.trackSession(userId, {
+            action: 'game_start',
+            difficulty
+          });
+        }
+      } else {
+        // Show registration modal
+        setShowUserRegistrationModal(true);
+      }
+    };
+    
+    initialize();
   }, []);
   
-  // Initialize a new game
-  const initGame = () => {
-    const word = getRandomWord();
-    setCurrentWord(word);
-    console.log('%c TARGET WORD FOR TESTING: %c ' + word + ' ', 'background: #222; color: #bada55; font-size: 16px; font-weight: bold;', 'background: #bada55; color: #222; font-size: 16px; font-weight: bold;');
-    setCurrentGuess('');
-    setGuesses([]);
-    setCurrentRow(0);
-    setCurrentCol(0);
-    setGameOver(false);
-    setIsValidating(false);
-    setIsAnimating(false);
-    setLockedRows([]);
-    setMessage({ text: '', type: '' });
-    
-    // Reset board
-    setBoard(
-      Array(6).fill(null).map(() => 
-        Array(5).fill(null).map(() => ({ letter: '', state: 'empty' }))
-      )
-    );
+  // Register user
+  const registerUser = async (userData: UserData) => {
+    try {
+      console.log('Registering user in GameContext:', userData.name);
+      
+      // Register user
+      const userId = await UserService.registerUser(userData);
+      
+      // Update state first to trigger UI changes
+      setIsUserRegistered(true);
+      setCurrentUserName(userData.name);
+      setShowUserRegistrationModal(false);
+      
+      console.log('User registered, initializing game...');
+      
+      // Initialize game after registration
+      await initGame();
+      loadStatistics();
+      
+      // Track session
+      UserService.trackSession(userId, {
+        action: 'game_start',
+        difficulty
+      });
+      
+      // Show welcome message
+      showMessage(`Welcome, ${userData.name}!`, 'success');
+      
+      return;
+    } catch (error) {
+      console.error('Error registering user:', error);
+      showMessage('Error registering user. Please try again.', 'error');
+      throw error; // Re-throw to let the component handle it
+    }
   };
   
   // Start a new game
-  const startNewGame = () => {
-    initGame();
-    setShowGameOverModal(false);
-    setShowStatsModal(false);
+  const startNewGame = async (newDifficultyOrEvent?: DifficultyLevel | MouseEvent) => {
+    // Check if the parameter is a React event (from button click) or a difficulty level
+    const isEvent = newDifficultyOrEvent && typeof newDifficultyOrEvent === 'object' && 'target' in newDifficultyOrEvent;
+    
+    // If it's a valid difficulty and not an event, update the difficulty
+    const newDifficulty = !isEvent ? newDifficultyOrEvent as DifficultyLevel : undefined;
+    
+    if (newDifficulty) {
+      console.log(`Setting difficulty to: ${newDifficulty}`);
+      setDifficulty(newDifficulty);
+    }
+    
+    // Use the provided difficulty or current state
+    const difficultyToUse = newDifficulty || difficulty;
+    console.log(`Starting new game with difficulty: ${difficultyToUse}`);
+    
+    try {
+      // Fetch word with the specified difficulty
+      console.log(`Fetching word for difficulty: ${difficultyToUse}`);
+      const word = await getWordByDifficulty(difficultyToUse);
+      
+      if (!word) {
+        console.error('Failed to get word for difficulty:', difficultyToUse);
+        return;
+      }
+      
+      setCurrentWord(word);
+      console.log('%c TARGET WORD FOR TESTING: %c ' + word + ' ', 'background: #222; color: #bada55; font-size: 16px; font-weight: bold;', 'background: #bada55; color: #222; font-size: 16px; font-weight: bold;');
+      console.log(`%c Difficulty: %c ${difficultyToUse} `, 'background: #222; color: #bada55; font-size: 12px;', 'background: #bada55; color: #222; font-size: 12px;');
+      
+      // Reset game state
+      setCurrentGuess('');
+      setGuesses([]);
+      setCurrentRow(0);
+      setCurrentCol(0);
+      setGameOver(false);
+      setIsValidating(false);
+      setIsAnimating(false);
+      setLockedRows([]);
+      setMessage({ text: '', type: '' });
+      
+      // Reset board
+      setBoard(
+        Array(6).fill(null).map(() => 
+          Array(5).fill(null).map(() => ({ letter: '', state: 'empty' }))
+        )
+      );
+      
+      setShowGameOverModal(false);
+      setShowStatsModal(false);
+      
+      // Track game session if user is registered
+      if (isUserRegistered) {
+        const userId = UserService.getCurrentUserId();
+        if (userId) {
+          UserService.trackSession(userId, {
+            action: 'new_game',
+            difficulty: difficultyToUse,
+            word: word
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Error starting new game:', error);
+    }
+  };
+  
+  // Initialize a new game - use startNewGame for implementation
+  const initGame = async () => {
+    // Call startNewGame with no parameters to use current difficulty
+    await startNewGame();
   };
   
   // Load statistics from localStorage
@@ -366,6 +495,19 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
           }
         }, 100);
         
+        // Track game completion if user is registered
+        if (isUserRegistered) {
+          const userId = UserService.getCurrentUserId();
+          if (userId) {
+            UserService.trackSession(userId, {
+              action: 'game_win',
+              difficulty,
+              word: currentWord,
+              attempts: currentRow + 1
+            });
+          }
+        }
+        
         setTimeout(() => {
           setShowGameOverModal(true);
         }, 2500); // Give more time to enjoy the animations
@@ -383,6 +525,19 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
           setGameOver(true);
           showMessage(`The word was ${currentWord}... Don't give up!`, 'error');
           updateStatistics(false);
+          
+          // Track game completion if user is registered
+          if (isUserRegistered) {
+            const userId = UserService.getCurrentUserId();
+            if (userId) {
+              UserService.trackSession(userId, {
+                action: 'game_lose',
+                difficulty,
+                word: currentWord,
+                attempts: 6
+              });
+            }
+          }
           
           setTimeout(() => {
             setShowGameOverModal(true);
@@ -468,6 +623,12 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
   const toggleStatsModal = () => setShowStatsModal(!showStatsModal);
   const hideGameOverModal = () => setShowGameOverModal(false);
   
+  // Custom setDifficulty function to ensure proper state updates
+  const handleDifficultyChange = (newDifficulty: DifficultyLevel) => {
+    console.log(`Changing difficulty from ${difficulty} to ${newDifficulty}`);
+    setDifficulty(newDifficulty);
+  };
+  
   // Context value
   const contextValue = {
     currentWord,
@@ -482,6 +643,8 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
     message,
     board,
     stats,
+    difficulty,
+    setDifficulty: handleDifficultyChange,
     addLetter,
     deleteLetter,
     submitGuess,
@@ -489,9 +652,13 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
     showHelpModal,
     showStatsModal,
     showGameOverModal,
+    showUserRegistrationModal,
     toggleHelpModal,
     toggleStatsModal,
-    hideGameOverModal
+    hideGameOverModal,
+    isUserRegistered,
+    currentUserName,
+    registerUser
   };
   
   return (

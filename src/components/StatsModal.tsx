@@ -33,7 +33,7 @@ const StatsModal = () => {
           </div>
           
           <div className="next-game">
-            <button className="button-with-icon" onClick={startNewGame}>
+            <button className="button-with-icon" onClick={() => startNewGame()}>
               <svg
                 className="icon"
                 id="Play"

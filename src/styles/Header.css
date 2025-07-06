@@ -14,6 +14,12 @@
   height: 40px;
 }
 
+.title-container {
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+
 .title {
   font-size: 32px;
   font-weight: bold;
@@ -22,6 +28,82 @@
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+  position: relative;
+  cursor: default;
+}
+
+.title-highlight {
+  position: relative;
+  display: inline-block;
+}
+
+.title-highlight:hover .difficulty-badge {
+  animation: wiggle 0.5s ease;
+}
+
+.difficulty-badge {
+  position: absolute;
+  top: -8px;
+  right: -15px;
+  padding: 3px 8px;
+  font-size: 10px;
+  font-weight: bold;
+  border-radius: 10px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  animation: bounceIn 0.5s ease;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  z-index: 5;
+}
+
+.difficulty-badge.easy {
+  background: #6aaa64;
+  color: white;
+}
+
+.difficulty-badge.medium {
+  background: #c9b458;
+  color: white;
+}
+
+.difficulty-badge.hard {
+  background: #dc3545;
+  color: white;
+}
+
+/* Difficulty underline effect */
+.title::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  border-radius: 2px;
+  transition: all 0.3s ease;
+}
+
+.title.easy::after {
+  background: linear-gradient(90deg, transparent, #6aaa64, transparent);
+}
+
+.title.medium::after {
+  background: linear-gradient(90deg, transparent, #c9b458, transparent);
+}
+
+.title.hard::after {
+  background: linear-gradient(90deg, transparent, #dc3545, transparent);
+}
+
+/* Glowing effect on hover */
+.title:hover::after {
+  height: 4px;
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.4);
+}
+
+.header-buttons {
+  display: flex;
+  gap: 8px;
 }
 
 .icon-btn {
@@ -40,8 +122,55 @@
   transform: scale(1.1);
 }
 
+.icon-btn.difficulty-easy:hover {
+  color: #6aaa64;
+}
+
+.icon-btn.difficulty-medium:hover {
+  color: #c9b458;
+}
+
+.icon-btn.difficulty-hard:hover {
+  color: #dc3545;
+}
+
+@keyframes bounceIn {
+  0% { transform: scale(0); }
+  50% { transform: scale(1.2); }
+  70% { transform: scale(0.9); }
+  100% { transform: scale(1); }
+}
+
+@keyframes wiggle {
+  0% { transform: rotate(15deg); }
+  25% { transform: rotate(25deg); }
+  50% { transform: rotate(5deg); }
+  75% { transform: rotate(25deg); }
+  100% { transform: rotate(15deg); }
+}
+
 @media (max-width: 480px) {
   .title {
     font-size: 28px;
   }
+  
+  .difficulty-badge {
+    font-size: 8px;
+    padding: 2px 5px;
+    top: -6px;
+    right: -10px;
+  }
+}
+
+.user-welcome {
+  font-size: 14px;
+  color: #666;
+  text-align: center;
+  margin-top: -5px;
+  margin-bottom: 5px;
+}
+
+.user-name {
+  font-weight: 600;
+  color: #538d4e;
 } 
