@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { RoomService, PlayerStatus } from '../services/RoomService';
+import { RoomService, PlayerStatus, RoomStatus } from '../services/RoomService';
 import { UserService } from '../services/UserService';
+import { getWordByDifficulty } from '../utils/wordService';
 import RoomCodeDisplay from './RoomCodeDisplay';
 import PlayerItem from './PlayerItem';
 import '../styles/Multiplayer.css';
@@ -44,6 +45,11 @@ const GameLobby = () => {
         const unsubscribe = RoomService.listenToRoom(roomCode, (updatedRoom) => {
           setRoom(updatedRoom);
           setPlayers(Object.values(updatedRoom.players || {}));
+          
+          // If room status changes to PLAYING, navigate to the game
+          if (updatedRoom.status === RoomStatus.PLAYING) {
+            navigate(`/multiplayer/${roomCode}/play`);
+          }
         });
         
         return () => {
@@ -59,7 +65,7 @@ const GameLobby = () => {
     };
     
     loadRoom();
-  }, [roomCode, currentUserId]);
+  }, [roomCode, currentUserId, navigate]);
   
   const handleToggleReady = async (playerId: string) => {
     if (!room) return;
@@ -82,8 +88,16 @@ const GameLobby = () => {
     if (!room || !isHost) return;
     
     try {
-      // Logic to start the game will be implemented later
-      console.log('Starting game...');
+      // Get a random word based on the room's difficulty
+      const difficulty = room.difficulty || 'medium';
+      console.log(`Getting random word for difficulty: ${difficulty}`);
+      const word = await getWordByDifficulty(difficulty);
+      console.log(`Starting game with word: ${word}`);
+      
+      // Start the game in Firebase
+      await RoomService.startGame(roomCode, word);
+      
+      // Navigation will happen automatically through the room listener
     } catch (error) {
       console.error('Error starting game:', error);
     }

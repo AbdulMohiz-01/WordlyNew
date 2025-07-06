@@ -2,6 +2,7 @@ import { useContext, useState } from 'react';
 import { GameContext } from '../context/GameContext';
 import DifficultyModal from './DifficultyModal';
 import '../styles/Header.css';
+import { Link, useLocation } from 'react-router-dom';
 
 const Header = () => {
   const { 
@@ -12,6 +13,7 @@ const Header = () => {
     currentUserName
   } = useContext(GameContext);
   const [showDifficultyModal, setShowDifficultyModal] = useState(false);
+  const location = useLocation();
   
   const toggleDifficultyModal = () => {
     setShowDifficultyModal(!showDifficultyModal);
@@ -53,6 +55,8 @@ const Header = () => {
     }
   };
   
+  const isMultiplayerPage = location.pathname === '/multiplayer';
+  
   return (
     <header className="header">
       <div className="header-content">
@@ -77,6 +81,20 @@ const Header = () => {
         </div>
         
         <div className="header-buttons">
+          {/* Multiplayer button */}
+          <Link 
+            to={isMultiplayerPage ? "/" : "/multiplayer"} 
+            className="icon-btn multiplayer-btn"
+            title={isMultiplayerPage ? "Single Player" : "Multiplayer"}
+          >
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+              <path d={isMultiplayerPage 
+                ? "M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" 
+                : "M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5z"} 
+              />
+            </svg>
+          </Link>
+          
           <button className={`icon-btn difficulty-${difficulty}`} onClick={toggleDifficultyModal}>
             {getDifficultyIcon()}
           </button>

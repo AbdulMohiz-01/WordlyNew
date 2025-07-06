@@ -1,14 +1,18 @@
 /* Multiplayer Styles */
 
-/* Create Room Button */
-.create-room-floating-btn-container {
+/* Floating Buttons */
+.floating-buttons-container {
   position: fixed;
   bottom: 20px;
   right: 20px;
   z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
-.create-room-floating-btn {
+.create-room-floating-btn,
+.multiplayer-floating-btn {
   display: inline-block;
   background-color: #2c3e50;
   color: white;
@@ -18,12 +22,22 @@
   font-weight: bold;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   transition: all 0.3s ease;
+  text-align: center;
 }
 
-.create-room-floating-btn:hover {
+.create-room-floating-btn:hover,
+.multiplayer-floating-btn:hover {
   background-color: #34495e;
   transform: translateY(-2px);
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+}
+
+.multiplayer-floating-btn {
+  background-color: #8e44ad;
+}
+
+.multiplayer-floating-btn:hover {
+  background-color: #9b59b6;
 }
 
 /* Room Creation Page */

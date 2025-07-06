@@ -5,8 +5,9 @@ import './styles/BorderPulse.css';
 import AppLayout from './components/AppLayout';
 import RoomCreationPage from './components/RoomCreationPage';
 import GameLobby from './components/GameLobby';
+import MultiplayerPage from './components/MultiplayerPage';
 
-function App() {
+export function App() {
   return (
     <BrowserRouter>
       <Routes>
@@ -26,6 +27,18 @@ function App() {
               <GameLobby />
             </GameProvider>
           } 
+        />
+        <Route 
+          path="/multiplayer/:roomId/play" 
+          element={
+            <GameProvider>
+              <MultiplayerPage />
+            </GameProvider>
+          } 
+        />
+        <Route 
+          path="/multiplayer" 
+          element={<MultiplayerPage />} 
         />
         <Route 
           path="/admin/:password" 

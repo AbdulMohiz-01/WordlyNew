@@ -49,6 +49,8 @@ export interface Player {
   avatar: Avatar;
   completedAt?: number;
   isWinner?: boolean;
+  guesses?: string[]; // Array to store player's guesses
+  position?: number; // Player's position in the final ranking
 }
 
 // Animal emojis for avatars
@@ -352,7 +354,8 @@ export class RoomService {
   static async updatePlayerProgress(
     roomId: string, 
     currentRow: number, 
-    score: number
+    score: number,
+    guess?: string
   ): Promise<void> {
     try {
       const userId = UserService.getCurrentUserId();
@@ -361,10 +364,24 @@ export class RoomService {
         throw new Error('User not logged in');
       }
       
-      await update(ref(database, `rooms/${roomId}/players/${userId}`), {
+      // Get current player data to update guesses properly
+      const roomData = await this.getRoom(roomId);
+      if (!roomData || !roomData.players[userId]) {
+        throw new Error('Player not found in room');
+      }
+      
+      const updateData: Record<string, any> = {
         currentRow,
         score
-      });
+      };
+      
+      // If a new guess is provided, add it to the guesses array
+      if (guess) {
+        const currentGuesses = roomData.players[userId].guesses || [];
+        updateData.guesses = [...currentGuesses, guess];
+      }
+      
+      await update(ref(database, `rooms/${roomId}/players/${userId}`), updateData);
       
       console.log('Updated player progress');
     } catch (error) {
@@ -409,6 +426,19 @@ export class RoomService {
       );
       
       if (allCompleted) {
+        // Sort players by score to assign positions
+        const sortedPlayers = Object.values(room.players)
+          .sort((a, b) => b.score - a.score);
+          
+        // Create updates object for all players with their positions
+        const playerUpdates: Record<string, any> = {};
+        sortedPlayers.forEach((player, index) => {
+          playerUpdates[`${player.id}/position`] = index + 1;
+        });
+        
+        // Update all players with their positions
+        await update(ref(database, `rooms/${roomId}/players`), playerUpdates);
+        
         // Update room status
         await update(ref(database, `rooms/${roomId}`), {
           status: RoomStatus.COMPLETED

@@ -4,7 +4,9 @@ import { isGameWord } from '../utils/words';
 import { getWordByDifficulty } from '../utils/wordService';
 import type { DifficultyLevel } from '../utils/wordService';
 import { UserService } from '../services/UserService';
+import { RoomService } from '../services/RoomService';
 import type { UserData } from '../components/UserRegistrationModal';
+import { useParams } from 'react-router-dom';
 
 // Define types for our game state
 export type TileState = 'empty' | 'filled' | 'correct' | 'present' | 'absent';
@@ -65,6 +67,10 @@ interface GameContextType {
   isUserRegistered: boolean;
   currentUserName: string | null;
   registerUser: (userData: UserData) => Promise<void>;
+  
+  // Multiplayer
+  isMultiplayer: boolean;
+  roomId: string | null;
 }
 
 // Create context with default values
@@ -72,6 +78,10 @@ export const GameContext = createContext<GameContextType>({} as GameContextType)
 
 // Create provider component
 export const GameProvider = ({ children }: { children: ReactNode }) => {
+  // Get roomId from URL params for multiplayer mode
+  const { roomId } = useParams<{ roomId?: string }>();
+  const isMultiplayer = !!roomId;
+  
   // Game state
   const [currentWord, setCurrentWord] = useState<string>('');
   const [currentGuess, setCurrentGuess] = useState<string>('');
@@ -126,14 +136,19 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
         
         // Initialize game only if user is registered
         await initGame();
-        loadStatistics();
+        
+        // Only load statistics in single player mode
+        if (!isMultiplayer) {
+          loadStatistics();
+        }
         
         // Track session
         const userId = UserService.getCurrentUserId();
         if (userId) {
           UserService.trackSession(userId, {
             action: 'game_start',
-            difficulty
+            difficulty,
+            isMultiplayer
           });
         }
       } else {
@@ -143,7 +158,7 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
     };
     
     initialize();
-  }, []);
+  }, [isMultiplayer]);
   
   // Register user
   const registerUser = async (userData: UserData) => {
@@ -162,12 +177,17 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
       
       // Initialize game after registration
       await initGame();
-      loadStatistics();
+      
+      // Only load statistics in single player mode
+      if (!isMultiplayer) {
+        loadStatistics();
+      }
       
       // Track session
       UserService.trackSession(userId, {
         action: 'game_start',
-        difficulty
+        difficulty,
+        isMultiplayer
       });
       
       // Show welcome message
@@ -199,13 +219,25 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
     console.log(`Starting new game with difficulty: ${difficultyToUse}`);
     
     try {
-      // Fetch word with the specified difficulty
-      console.log(`Fetching word for difficulty: ${difficultyToUse}`);
-      const word = await getWordByDifficulty(difficultyToUse);
+      // In multiplayer mode, get the word from the room
+      let word: string;
       
-      if (!word) {
-        console.error('Failed to get word for difficulty:', difficultyToUse);
-        return;
+      if (isMultiplayer && roomId) {
+        const room = await RoomService.getRoom(roomId);
+        if (!room || !room.currentWord) {
+          console.error('Failed to get word from room');
+          return;
+        }
+        word = room.currentWord;
+      } else {
+        // Fetch word with the specified difficulty for single player
+        console.log(`Fetching word for difficulty: ${difficultyToUse}`);
+        word = await getWordByDifficulty(difficultyToUse);
+        
+        if (!word) {
+          console.error('Failed to get word for difficulty:', difficultyToUse);
+          return;
+        }
       }
       
       setCurrentWord(word);
@@ -240,7 +272,8 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
           UserService.trackSession(userId, {
             action: 'new_game',
             difficulty: difficultyToUse,
-            word: word
+            word: word,
+            isMultiplayer
           });
         }
       }
@@ -249,153 +282,151 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
     }
   };
   
-  // Initialize a new game - use startNewGame for implementation
+  // Initialize game
   const initGame = async () => {
-    // Call startNewGame with no parameters to use current difficulty
+    // Start a new game
     await startNewGame();
   };
   
-  // Load statistics from localStorage
+  // Load statistics from local storage
   const loadStatistics = () => {
-    const savedStats = localStorage.getItem('wordlyStats');
-    if (savedStats) {
-      setStats(JSON.parse(savedStats));
+    const statsData = localStorage.getItem('wordlyStats');
+    if (statsData) {
+      setStats(JSON.parse(statsData));
     }
   };
   
-  // Save statistics to localStorage
+  // Save statistics to local storage
   const saveStatistics = (newStats: GameStats) => {
     localStorage.setItem('wordlyStats', JSON.stringify(newStats));
     setStats(newStats);
   };
   
-  // Update statistics after a game ends
+  // Update statistics after game completion
   const updateStatistics = (won: boolean): void => {
+    // Only update statistics in single player mode
+    if (isMultiplayer) return;
+    
     const newStats = { ...stats };
     newStats.gamesPlayed += 1;
     
     if (won) {
       newStats.currentStreak += 1;
-      if (newStats.currentStreak > newStats.maxStreak) {
-        newStats.maxStreak = newStats.currentStreak;
-      }
+      newStats.maxStreak = Math.max(newStats.maxStreak, newStats.currentStreak);
     } else {
       newStats.currentStreak = 0;
     }
     
-    const wins = won ? (newStats.gamesPlayed * (newStats.winPercentage / 100)) + 1 : (newStats.gamesPlayed * (newStats.winPercentage / 100));
-    newStats.winPercentage = Math.round((wins / newStats.gamesPlayed) * 100);
-    
+    newStats.winPercentage = Math.round((newStats.maxStreak / newStats.gamesPlayed) * 100);
     saveStatistics(newStats);
   };
   
-  // Check if the current row is locked
+  // Check if a row is locked (already submitted)
   const isRowLocked = (row: number) => {
     return lockedRows.includes(row);
   };
   
   // Add a letter to the current guess
   const addLetter = (letter: string) => {
-    if (gameOver || isValidating || isAnimating || currentCol >= 5 || isRowLocked(currentRow)) return;
+    if (gameOver || isValidating || isAnimating || currentCol >= 5 || isRowLocked(currentRow)) {
+      return;
+    }
     
+    // Add the letter to the current guess
+    const newGuess = currentGuess + letter;
+    setCurrentGuess(newGuess);
+    
+    // Update the board
     const newBoard = [...board];
-    newBoard[currentRow][currentCol] = {
-      letter,
-      state: 'filled'
-    };
-    
+    newBoard[currentRow][currentCol] = { letter, state: 'filled' };
     setBoard(newBoard);
-    setCurrentGuess(currentGuess + letter);
+    
+    // Move to the next column
     setCurrentCol(currentCol + 1);
   };
   
   // Delete the last letter from the current guess
   const deleteLetter = () => {
-    if (gameOver || isValidating || isAnimating || currentCol <= 0 || isRowLocked(currentRow)) return;
+    if (gameOver || isValidating || isAnimating || currentCol <= 0 || isRowLocked(currentRow)) {
+      return;
+    }
     
+    // Remove the last letter from the current guess
+    const newGuess = currentGuess.slice(0, -1);
+    setCurrentGuess(newGuess);
+    
+    // Update the board
     const newCol = currentCol - 1;
     const newBoard = [...board];
-    newBoard[currentRow][newCol] = {
-      letter: '',
-      state: 'empty'
-    };
-    
+    newBoard[currentRow][newCol] = { letter: '', state: 'empty' };
     setBoard(newBoard);
-    setCurrentGuess(currentGuess.slice(0, -1));
+    
+    // Move to the previous column
     setCurrentCol(newCol);
   };
   
   // Show a message to the user
   const showMessage = (text: string, type: 'success' | 'error' | 'info' = 'info') => {
     setMessage({ text, type });
+    
+    // Clear the message after 2 seconds
     setTimeout(() => {
       setMessage({ text: '', type: '' });
-    }, 3000);
+    }, 2000);
   };
   
   // Check the guess against the target word
   const checkGuess = (guess: string, target: string) => {
-    const result: ('correct' | 'present' | 'absent')[] = Array(5).fill('absent');
-    const targetChars = target.split('');
+    const result: ('correct' | 'present' | 'absent')[] = [];
+    const guessArray = guess.split('');
+    const targetArray = target.split('');
     
-    // First pass: check for correct positions
-    for (let i = 0; i < 5; i++) {
-      if (guess[i] === target[i]) {
+    // First pass: Mark correct letters
+    for (let i = 0; i < guessArray.length; i++) {
+      if (guessArray[i] === targetArray[i]) {
         result[i] = 'correct';
-        targetChars[i] = '';  // Mark as used
+        targetArray[i] = '#'; // Mark as used
       }
     }
     
-    // Second pass: check for present letters
-    for (let i = 0; i < 5; i++) {
-      if (result[i] === 'absent') {
-        const charIndex = targetChars.indexOf(guess[i]);
-        if (charIndex !== -1) {
-          result[i] = 'present';
-          targetChars[charIndex] = '';  // Mark as used
-        }
+    // Second pass: Mark present letters
+    for (let i = 0; i < guessArray.length; i++) {
+      if (result[i]) continue; // Skip already marked letters
+      
+      const letterIndex = targetArray.indexOf(guessArray[i]);
+      if (letterIndex !== -1) {
+        result[i] = 'present';
+        targetArray[letterIndex] = '#'; // Mark as used
+      } else {
+        result[i] = 'absent';
       }
     }
     
     return result;
   };
   
-  // Update the board with the results of the guess
+  // Update the board with the results of a guess
   const updateBoard = (row: number, result: ('correct' | 'present' | 'absent')[]) => {
-    // Set animating state to true
+    // Start the animation sequence
     setIsAnimating(true);
     
-    // Apply the animations with a delay for each tile
+    // Update each tile with a delay
     for (let i = 0; i < 5; i++) {
-      // We'll apply the state changes with a delay
       setTimeout(() => {
-        setBoard(prevBoard => {
-          const updatedBoard = [...prevBoard];
-          updatedBoard[row][i] = {
-            ...updatedBoard[row][i],
-            state: result[i]
-          };
-          return updatedBoard;
-        });
+        const newBoardUpdate = [...board];
+        newBoardUpdate[row][i] = {
+          ...newBoardUpdate[row][i],
+          state: result[i]
+        };
+        setBoard(newBoardUpdate);
         
-        // Add bounce animation to correct tiles
-        if (result[i] === 'correct') {
-          const tile = document.querySelector(`[data-row="${row}"] [data-col="${i}"]`);
-          if (tile) {
-            tile.classList.add('bounce');
-            setTimeout(() => {
-              tile.classList.remove('bounce');
-            }, 400);
-          }
-        }
-        
-        // After the last tile animation is complete, set animating to false
+        // If this is the last tile, end the animation sequence
         if (i === 4) {
           setTimeout(() => {
             setIsAnimating(false);
-          }, 400); // Wait for the animation to complete
+          }, 400); // Wait for the flip animation to complete
         }
-      }, i * 200); // 200ms delay between each tile flip (faster than before)
+      }, i * 200); // 200ms delay between each tile
     }
   };
   
@@ -457,6 +488,28 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
     const newGuesses = [...guesses, currentGuess];
     setGuesses(newGuesses);
     
+    // For multiplayer mode, update the player's progress in the database
+    if (isMultiplayer && roomId) {
+      // Calculate score based on correct letters
+      const correctCount = result.filter(r => r === 'correct').length;
+      const presentCount = result.filter(r => r === 'present').length;
+      
+      // Score: 10 points for each correct letter, 2 points for each present letter
+      const scoreForThisGuess = (correctCount * 10) + (presentCount * 2);
+      
+      try {
+        // Update player progress in the database
+        await RoomService.updatePlayerProgress(
+          roomId,
+          currentRow + 1,  // currentRow is 0-based, but we store 1-based for display
+          scoreForThisGuess,
+          currentGuess
+        );
+      } catch (error) {
+        console.error('Error updating player progress:', error);
+      }
+    }
+    
     // Wait for animations to complete (5 tiles × 200ms delay + 400ms animation)
     const animationDelay = 5 * 200 + 400;
     
@@ -465,7 +518,18 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
       setTimeout(() => {
         setGameOver(true);
         // Don't show congratulations message since we have good animations
-        updateStatistics(true);
+        
+        // In multiplayer mode, update the player's status to completed
+        if (isMultiplayer && roomId) {
+          try {
+            RoomService.completeGame(roomId, currentRow + 1 * 50, true);
+          } catch (error) {
+            console.error('Error completing game:', error);
+          }
+        } else {
+          // Only update statistics in single player mode
+          updateStatistics(true);
+        }
         
         // Create confetti animation
         createConfetti();
@@ -503,14 +567,18 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
               action: 'game_win',
               difficulty,
               word: currentWord,
-              attempts: currentRow + 1
+              attempts: currentRow + 1,
+              isMultiplayer
             });
           }
         }
         
-        setTimeout(() => {
-          setShowGameOverModal(true);
-        }, 2500); // Give more time to enjoy the animations
+        // Only show game over modal in single player mode
+        if (!isMultiplayer) {
+          setTimeout(() => {
+            setShowGameOverModal(true);
+          }, 2500); // Give more time to enjoy the animations
+        }
       }, animationDelay);
     } else {
       // Move to next row after animations complete
@@ -524,7 +592,18 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
         if (newRow >= 6) {
           setGameOver(true);
           showMessage(`The word was ${currentWord}... Don't give up!`, 'error');
-          updateStatistics(false);
+          
+          // In multiplayer mode, update the player's status to completed
+          if (isMultiplayer && roomId) {
+            try {
+              RoomService.completeGame(roomId, 0, false);
+            } catch (error) {
+              console.error('Error completing game:', error);
+            }
+          } else {
+            // Only update statistics in single player mode
+            updateStatistics(false);
+          }
           
           // Track game completion if user is registered
           if (isUserRegistered) {
@@ -534,14 +613,18 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
                 action: 'game_lose',
                 difficulty,
                 word: currentWord,
-                attempts: 6
+                attempts: 6,
+                isMultiplayer
               });
             }
           }
           
-          setTimeout(() => {
-            setShowGameOverModal(true);
-          }, 1500);
+          // Only show game over modal in single player mode
+          if (!isMultiplayer) {
+            setTimeout(() => {
+              setShowGameOverModal(true);
+            }, 1500);
+          }
         }
       }, animationDelay);
     }
@@ -598,23 +681,21 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
         star.style.left = Math.random() * 100 + 'vw';
         star.style.animationDuration = (Math.random() * 3 + 2) + 's';
         star.style.animationDelay = Math.random() * 1 + 's';
-        star.style.zIndex = '10000';
         
-        const starInner = document.createElement('div');
-        starInner.className = 'star';
-        starInner.innerHTML = '★';
-        starInner.style.color = '#ffd700';
-        starInner.style.fontSize = (Math.random() * 18 + 14) + 'px';
-        starInner.style.textShadow = '0 0 10px rgba(255, 215, 0, 0.8)';
-        starInner.style.animation = `spin ${Math.random() * 2 + 1}s linear infinite`;
+        const piece = document.createElement('div');
+        piece.className = 'confetti-piece star';
+        piece.style.color = '#ffd700';
+        piece.textContent = '★';
+        piece.style.fontSize = (Math.random() * 15 + 10) + 'px';
+        piece.style.transform = `rotate(${Math.random() * 360}deg)`;
         
-        star.appendChild(starInner);
+        star.appendChild(piece);
         document.body.appendChild(star);
         
         setTimeout(() => {
           document.body.removeChild(star);
         }, 5000);
-      }, i * 100 + 500);
+      }, i * 100);
     }
   };
   
@@ -623,46 +704,62 @@ export const GameProvider = ({ children }: { children: ReactNode }) => {
   const toggleStatsModal = () => setShowStatsModal(!showStatsModal);
   const hideGameOverModal = () => setShowGameOverModal(false);
   
-  // Custom setDifficulty function to ensure proper state updates
+  // Handle difficulty change
   const handleDifficultyChange = (newDifficulty: DifficultyLevel) => {
-    console.log(`Changing difficulty from ${difficulty} to ${newDifficulty}`);
     setDifficulty(newDifficulty);
-  };
-  
-  // Context value
-  const contextValue = {
-    currentWord,
-    currentGuess,
-    guesses,
-    currentRow,
-    currentCol,
-    gameOver,
-    isValidating,
-    isAnimating,
-    lockedRows,
-    message,
-    board,
-    stats,
-    difficulty,
-    setDifficulty: handleDifficultyChange,
-    addLetter,
-    deleteLetter,
-    submitGuess,
-    startNewGame,
-    showHelpModal,
-    showStatsModal,
-    showGameOverModal,
-    showUserRegistrationModal,
-    toggleHelpModal,
-    toggleStatsModal,
-    hideGameOverModal,
-    isUserRegistered,
-    currentUserName,
-    registerUser
+    startNewGame(newDifficulty);
   };
   
   return (
-    <GameContext.Provider value={contextValue}>
+    <GameContext.Provider value={{
+      // Game state
+      currentWord,
+      currentGuess,
+      guesses,
+      currentRow,
+      currentCol,
+      gameOver,
+      isValidating,
+      isAnimating,
+      lockedRows,
+      message,
+      
+      // Game board state
+      board,
+      
+      // Game statistics
+      stats,
+      
+      // Difficulty settings
+      difficulty,
+      setDifficulty: handleDifficultyChange,
+      
+      // Game actions
+      addLetter,
+      deleteLetter,
+      submitGuess,
+      startNewGame,
+      
+      // Modal states
+      showHelpModal,
+      showStatsModal,
+      showGameOverModal,
+      showUserRegistrationModal,
+      
+      // Modal actions
+      toggleHelpModal,
+      toggleStatsModal,
+      hideGameOverModal,
+      
+      // User registration
+      isUserRegistered,
+      currentUserName,
+      registerUser,
+      
+      // Multiplayer
+      isMultiplayer,
+      roomId: roomId || null
+    }}>
       {children}
     </GameContext.Provider>
   );
