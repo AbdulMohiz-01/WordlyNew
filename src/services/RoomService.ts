@@ -262,7 +262,7 @@ export class RoomService {
   static listenToRoom(roomId: string, callback: (room: Room) => void): () => void {
     const roomRef = ref(database, `rooms/${roomId}`);
     
-    const unsubscribe = onValue(roomRef, (snapshot) => {
+    onValue(roomRef, (snapshot) => {
       if (snapshot.exists()) {
         const room = snapshot.val() as Room;
         callback(room);
