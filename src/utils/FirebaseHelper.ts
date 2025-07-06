@@ -9,15 +9,13 @@ import {
   deleteDoc, 
   query, 
   where, 
-  orderBy, 
-  limit, 
-  DocumentData, 
   QueryConstraint,
   DocumentReference,
   DocumentSnapshot,
   QuerySnapshot,
   FirestoreError
 } from 'firebase/firestore';
+import type { DocumentData } from 'firebase/firestore';
 import { app } from '../firebase';
 
 // Initialize Firestore

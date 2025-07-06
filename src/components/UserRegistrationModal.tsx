@@ -20,8 +20,7 @@ export interface UserData {
   timestamp: number;
 }
 
-const UserRegistrationModal = ({ show, onClose, onRegister }: UserRegistrationModalProps) => {
-  const [name, setName] = useState<string>('');
+const UserRegistrationModal = ({ show, onRegister }: UserRegistrationModalProps) => {
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [error, setError] = useState<string>('');
   const modalRef = useRef<HTMLDivElement>(null);

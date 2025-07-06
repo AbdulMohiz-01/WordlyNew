@@ -8,7 +8,6 @@ const Header = () => {
     toggleHelpModal, 
     toggleStatsModal,
     difficulty,
-    setDifficulty,
     startNewGame,
     currentUserName
   } = useContext(GameContext);

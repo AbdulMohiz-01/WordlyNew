@@ -1,5 +1,5 @@
 import { FirebaseHelper } from '../utils/FirebaseHelper';
-import { orderBy, limit, where, QueryConstraint } from 'firebase/firestore';
+import { where } from 'firebase/firestore';
 
 // Collection name for words
 const COLLECTION_NAME = 'words';

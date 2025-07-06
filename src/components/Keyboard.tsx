@@ -98,7 +98,7 @@ const Keyboard = () => {
     <div className={`keyboard ${isKeyboardDisabled ? 'disabled' : ''}`}>
       {keyboardRows.map((row, rowIndex) => (
         <div key={`keyboard-row-${rowIndex}`} className="keyboard-row">
-          {row.map((key, keyIndex) => (
+          {row.map((key) => (
             <button
               key={`key-${key}`}
               className={`key ${key === 'ENTER' || key === '⌫' ? 'key-large' : ''} ${getKeyState(key)} ${highlightedKey === key ? 'highlight' : ''}`}
