@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import type { Room, PlayerStatus } from '../../services/RoomService';
+import type { Room } from '../../services/RoomService';
 import { UserService } from '../../services/UserService';
 
 interface Player {
@@ -132,7 +132,7 @@ const PlayerScores = ({ room }: PlayerScoresProps) => {
   const [players, setPlayers] = useState<Player[]>(initializePlayers());
   const [lastUpdated, setLastUpdated] = useState<string | null>(null);
   const prevPlayersRef = useRef<Player[]>(initializePlayers());
-  const [showCelebration, setShowCelebration] = useState<string | null>(null);
+  const [showCelebration] = useState<string | null>(null);
 
   // Update players when room data changes
   useEffect(() => {

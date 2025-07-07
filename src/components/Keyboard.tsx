@@ -2,7 +2,11 @@ import { useContext, useEffect, useCallback, useState } from 'react';
 import { GameContext } from '../context/GameContext';
 import '../styles/Keyboard.css';
 
-const Keyboard = () => {
+interface KeyboardProps {
+  onKeyPress?: (key: string) => void;
+}
+
+const Keyboard = ({ onKeyPress }: KeyboardProps = {}) => {
   const { 
     addLetter, 
     deleteLetter, 
@@ -34,17 +38,29 @@ const Keyboard = () => {
     if (key === 'ENTER') {
       setHighlightedKey('ENTER');
       setTimeout(() => setHighlightedKey(null), 200);
-      submitGuess();
+      if (onKeyPress) {
+        onKeyPress('ENTER');
+      } else {
+        submitGuess();
+      }
     } else if (key === 'BACKSPACE') {
       setHighlightedKey('⌫');
       setTimeout(() => setHighlightedKey(null), 200);
-      deleteLetter();
+      if (onKeyPress) {
+        onKeyPress('BACKSPACE');
+      } else {
+        deleteLetter();
+      }
     } else if (key.match(/^[A-Z]$/) && key.length === 1) {
       setHighlightedKey(key);
       setTimeout(() => setHighlightedKey(null), 200);
-      addLetter(key);
+      if (onKeyPress) {
+        onKeyPress(key);
+      } else {
+        addLetter(key);
+      }
     }
-  }, [gameOver, isValidating, isAnimating, submitGuess, deleteLetter, addLetter]);
+  }, [gameOver, isValidating, isAnimating, submitGuess, deleteLetter, addLetter, onKeyPress]);
 
   // Set up keyboard event listener
   useEffect(() => {
@@ -60,11 +76,23 @@ const Keyboard = () => {
     if (gameOver || isValidating || isAnimating) return;
     
     if (key === 'ENTER') {
-      submitGuess();
+      if (onKeyPress) {
+        onKeyPress('ENTER');
+      } else {
+        submitGuess();
+      }
     } else if (key === '⌫') {
-      deleteLetter();
+      if (onKeyPress) {
+        onKeyPress('BACKSPACE');
+      } else {
+        deleteLetter();
+      }
     } else {
-      addLetter(key);
+      if (onKeyPress) {
+        onKeyPress(key);
+      } else {
+        addLetter(key);
+      }
     }
   };
 

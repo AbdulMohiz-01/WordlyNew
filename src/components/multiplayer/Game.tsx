@@ -1,5 +1,5 @@
 import { useState, useEffect, useContext } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import Board from '../Board';
 import Keyboard from '../Keyboard';
 import { GameContext } from '../../context/GameContext';
@@ -17,24 +17,20 @@ interface GameProps {
 
 const Game: React.FC<GameProps> = () => {
   const { roomId = '' } = useParams<{ roomId: string }>();
-  const navigate = useNavigate();
   const { 
-    currentGuess, 
     guesses, 
     currentRow, 
     gameOver,
     addLetter,
     deleteLetter,
-    submitGuess,
-    startNewGame
+    submitGuess
   } = useContext(GameContext);
   
   const [room, setRoom] = useState<Room | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [showCompletionModal, setShowCompletionModal] = useState<boolean>(false);
-  const [allPlayersCompleted, setAllPlayersCompleted] = useState<boolean>(false);
-  const [currentUserId] = useState<string>(UserService.getCurrentUserId());
+  const [currentUserId] = useState<string>(UserService.getCurrentUserId() || '');
 
   // Effect to load room data and set up real-time listeners
   useEffect(() => {
@@ -66,7 +62,6 @@ const Game: React.FC<GameProps> = () => {
           );
           
           if (allCompleted && Object.keys(updatedRoom.players).length > 1) {
-            setAllPlayersCompleted(true);
             setShowCompletionModal(true);
           }
         });
@@ -136,38 +131,6 @@ const Game: React.FC<GameProps> = () => {
     updatePlayerStatus();
   }, [gameOver, roomId, currentUserId, currentRow, room]);
 
-  // Handle game exit
-  const handleExitGame = () => {
-    navigate('/lobby');
-  };
-
-  // Handle game restart
-  const handleRestartGame = async () => {
-    if (!roomId) return;
-    
-    try {
-      // For now, just navigate back to the room
-      navigate(`/multiplayer/${roomId}`);
-      startNewGame();
-      setShowCompletionModal(false);
-      setAllPlayersCompleted(false);
-    } catch (err) {
-      console.error('Error restarting game:', err);
-      setError('Failed to restart game');
-    }
-  };
-
-  // Handle key press for the keyboard
-  const handleKeyPress = (key: string) => {
-    if (key === 'ENTER') {
-      submitGuess();
-    } else if (key === 'BACKSPACE') {
-      deleteLetter();
-    } else {
-      addLetter(key);
-    }
-  };
-
   if (loading) {
     return <div className="loading">Loading game...</div>;
   }
@@ -180,7 +143,15 @@ const Game: React.FC<GameProps> = () => {
     <div className="multiplayer-game-container">
       <div className="game-area">
         <Board />
-        <Keyboard />
+        <Keyboard onKeyPress={(key: string) => {
+          if (key === 'ENTER') {
+            submitGuess();
+          } else if (key === 'BACKSPACE') {
+            deleteLetter();
+          } else {
+            addLetter(key);
+          }
+        }} />
       </div>
       
       <div className="sidebar">
