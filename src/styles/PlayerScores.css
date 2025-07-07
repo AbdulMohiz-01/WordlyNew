@@ -1,0 +1,390 @@
+.player-scores-container {
+  background-color: rgba(255, 255, 255, 0.9);
+  border-radius: 10px;
+  padding: 15px;
+  margin-top: 20px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  max-width: 400px;
+  width: 100%;
+  max-height: 80vh;
+  overflow-y: auto;
+  position: relative;
+}
+
+.player-scores-title {
+  font-size: 1.2rem;
+  margin-bottom: 15px;
+  text-align: center;
+  color: #333;
+  font-weight: 600;
+}
+
+.score-update-notification {
+  background-color: #f8f9fa;
+  border-left: 4px solid #4caf50;
+  padding: 8px 12px;
+  margin-bottom: 15px;
+  font-size: 0.9rem;
+  animation: fadeOut 3s forwards;
+  color: #333;
+}
+
+.celebration-message {
+  background-color: #fff9c4;
+  border-radius: 8px;
+  padding: 10px;
+  margin-bottom: 15px;
+  text-align: center;
+  font-weight: bold;
+  color: #ff9800;
+  animation: celebrationPulse 2s infinite;
+}
+
+/* Winners Podium */
+.winners-podium {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: flex-end;
+  margin-bottom: 20px;
+  padding: 10px;
+  background-color: #f5f5f5;
+  border-radius: 10px;
+  position: relative;
+  min-height: 150px;
+}
+
+.winner-card {
+  position: relative;
+  width: 100px;
+  margin: 0 5px;
+  border-radius: 8px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+/* Gold medal - 1st place */
+.winner-card.position-1 {
+  height: 130px;
+  order: 2;
+  background: linear-gradient(135deg, #ffd700, #ffcc00);
+  border: 2px solid #ffd700;
+  box-shadow: 0 0 15px #ffd700;
+  z-index: 3;
+  animation: goldGlow 2s infinite alternate;
+  transform: translateY(-20px);
+}
+
+/* Silver medal - 2nd place */
+.winner-card.position-2 {
+  height: 110px;
+  order: 1;
+  background: linear-gradient(135deg, #c0c0c0, #e0e0e0);
+  border: 2px solid #c0c0c0;
+  box-shadow: 0 0 10px #c0c0c0;
+  z-index: 2;
+  transform: translateY(-10px);
+}
+
+/* Bronze medal - 3rd place */
+.winner-card.position-3 {
+  height: 100px;
+  order: 3;
+  background: linear-gradient(135deg, #cd7f32, #dda15e);
+  border: 2px solid #cd7f32;
+  box-shadow: 0 0 10px #cd7f32;
+  z-index: 1;
+}
+
+.position-badge {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background-color: #fff;
+  color: #333;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 0.8rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.winner-card.position-1 .position-badge {
+  background-color: #ffd700;
+  color: #000;
+}
+
+.winner-card.position-2 .position-badge {
+  background-color: #c0c0c0;
+  color: #000;
+}
+
+.winner-card.position-3 .position-badge {
+  background-color: #cd7f32;
+  color: #fff;
+}
+
+.winner-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  padding: 10px;
+}
+
+.winner-card .player-avatar {
+  position: relative;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  margin-bottom: 8px;
+  border: 2px solid white;
+}
+
+.crown-icon {
+  position: absolute;
+  top: -20px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 1.2rem;
+  animation: bounceCrown 1s infinite alternate;
+}
+
+.winner-card .player-info {
+  text-align: center;
+}
+
+.winner-card .player-name {
+  font-weight: bold;
+  font-size: 0.9rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 80px;
+  color: #333;
+}
+
+.winner-card.position-1 .player-name,
+.winner-card.position-1 .winner-score {
+  color: #000;
+  text-shadow: 0 0 2px rgba(255, 255, 255, 0.5);
+}
+
+.winner-score {
+  font-weight: bold;
+  font-size: 1rem;
+  color: #333;
+}
+
+/* Player scores list */
+.player-scores-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.player-score-card {
+  background-color: #fff;
+  border-radius: 8px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.player-score-card.current-user {
+  border-left: 4px solid #4caf50;
+}
+
+.player-score-card.finished {
+  background-color: #f9f9f9;
+  border: 1px solid #e0e0e0;
+}
+
+.regular-position-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background-color: #f0f0f0;
+  color: #666;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  font-weight: bold;
+}
+
+.player-score-header {
+  display: flex;
+  align-items: center;
+}
+
+.player-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  margin-right: 10px;
+}
+
+.player-info {
+  flex: 1;
+}
+
+.player-name {
+  font-weight: 600;
+  font-size: 0.9rem;
+  margin-bottom: 2px;
+}
+
+.guesses-info {
+  font-size: 0.8rem;
+  color: #666;
+}
+
+.player-score {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  position: relative;
+}
+
+.score-value {
+  font-weight: bold;
+  font-size: 1.1rem;
+}
+
+.score-label {
+  font-size: 0.7rem;
+  color: #666;
+}
+
+.score-change-indicator {
+  position: absolute;
+  top: -15px;
+  right: 0;
+  font-size: 0.8rem;
+  font-weight: bold;
+  animation: fadeUp 2s forwards;
+}
+
+.score-change-indicator.positive {
+  color: #4caf50;
+}
+
+.score-change-indicator.negative {
+  color: #f44336;
+}
+
+.player-guess-count {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px dashed #eee;
+}
+
+.guess-count-indicator {
+  font-size: 0.8rem;
+  color: #666;
+  text-align: center;
+}
+
+/* Score change animations */
+.score-increased {
+  animation: scoreIncrease 1s;
+}
+
+.score-decreased {
+  animation: scoreDecrease 1s;
+}
+
+.just-won {
+  animation: winningPulse 2s infinite;
+}
+
+/* Animations */
+@keyframes fadeOut {
+  0% { opacity: 1; }
+  80% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+@keyframes fadeUp {
+  0% { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(-20px); }
+}
+
+@keyframes scoreIncrease {
+  0% { background-color: rgba(76, 175, 80, 0.2); }
+  100% { background-color: transparent; }
+}
+
+@keyframes scoreDecrease {
+  0% { background-color: rgba(244, 67, 54, 0.2); }
+  100% { background-color: transparent; }
+}
+
+@keyframes celebrationPulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+@keyframes winningPulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+@keyframes goldGlow {
+  0% { box-shadow: 0 0 10px #ffd700; }
+  100% { box-shadow: 0 0 20px #ffd700, 0 0 30px #ffcc00; }
+}
+
+@keyframes bounceCrown {
+  0% { transform: translateX(-50%) translateY(0); }
+  100% { transform: translateX(-50%) translateY(-5px); }
+}
+
+/* Responsive adjustments */
+@media (max-width: 480px) {
+  .player-scores-container {
+    max-width: 100%;
+    margin: 10px 0;
+  }
+  
+  .winners-podium {
+    padding: 5px;
+  }
+  
+  .winner-card {
+    width: 80px;
+  }
+  
+  .winner-card .player-avatar {
+    width: 40px;
+    height: 40px;
+    font-size: 1.2rem;
+  }
+  
+  .winner-card .player-name {
+    font-size: 0.8rem;
+    max-width: 70px;
+  }
+} 

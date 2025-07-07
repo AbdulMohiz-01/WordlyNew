@@ -307,8 +307,8 @@
 
 .player-status {
   font-size: 11px;
-  color: #aaa;
   text-transform: capitalize;
+  columns: black;
 }
 
 .room-actions {
@@ -666,7 +666,7 @@
 
 .player-item .player-status {
   font-size: 11px;
-  color: #aaa;
+  /* color: white; */
   text-transform: capitalize;
 }
 
@@ -766,7 +766,8 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
-  margin-bottom: 15px;
+  /* margin-bottom: 15px; */
+  margin: 10px;
 }
 
 .winner-card {
@@ -778,15 +779,15 @@
   transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
-.winner-card:hover {
+/* .winner-card:hover {
   transform: translateY(-3px);
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-}
+} */
 
 .winner-card.position-1 {
   background: linear-gradient(135deg, #ffd700 0%, #e6c200 100%);
   color: #000;
-  animation: shimmer 2s infinite alternate;
+  /* animation: shimmer 2s infinite alternate; */
 }
 
 .winner-card.position-1::before {
@@ -1134,69 +1135,54 @@
 
 .winner-message {
   color: #ffd700;
-  font-size: 24px;
-  text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
-  animation: pulse 1.5s infinite alternate;
-}
-
-@keyframes pulse {
-  from {
-    opacity: 0.8;
-    transform: scale(1);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1.05);
-  }
+  text-shadow: 0 0 5px rgba(255, 215, 0, 0.5);
+  animation: pulse 2s infinite;
 }
 
 .result-info {
-  font-size: 18px;
+  font-size: 1.1rem;
   margin-top: 10px;
-  color: #aaa;
 }
 
 .highlight {
-  color: #3498db;
   font-weight: bold;
+  color: #4caf50;
 }
 
 .podium-large {
-  margin: 30px 0;
+  min-height: 200px;
+  margin-bottom: 30px;
 }
 
 .podium-large .winner-card {
-  padding: 15px;
-  margin-bottom: 15px;
+  width: 120px;
 }
 
-.podium-large .player-avatar {
-  width: 50px;
-  height: 50px;
-  font-size: 24px;
+.podium-large .winner-card.position-1 {
+  height: 160px;
 }
 
-.podium-large .player-name {
-  font-size: 18px;
+.podium-large .winner-card.position-2 {
+  height: 130px;
 }
 
-.podium-large .winner-score {
-  font-size: 16px;
-  font-weight: bold;
+.podium-large .winner-card.position-3 {
+  height: 110px;
 }
 
 .all-players-results {
-  margin-top: 30px;
-  background-color: #2a2a2a;
-  border-radius: 8px;
+  background-color: #f5f5f5;
+  border-radius: 10px;
   padding: 15px;
+  margin-bottom: 20px;
 }
 
 .all-players-results h4 {
+  text-align: center;
   margin-top: 0;
   margin-bottom: 15px;
-  font-size: 18px;
-  color: #fff;
+  font-size: 1.1rem;
+  color: #333;
 }
 
 .results-list {
@@ -1208,80 +1194,122 @@
 .player-result-item {
   display: flex;
   align-items: center;
+  background-color: white;
   padding: 8px 12px;
-  background-color: #333;
   border-radius: 6px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .player-result-item.current-user {
-  border-left: 3px solid #2ecc71;
+  background-color: #e8f5e9;
+  border-left: 3px solid #4caf50;
 }
 
 .player-position {
   width: 24px;
   height: 24px;
   border-radius: 50%;
-  background-color: #444;
-  color: #fff;
+  background-color: #f0f0f0;
+  color: #333;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 12px;
+  font-size: 0.8rem;
   font-weight: bold;
   margin-right: 10px;
 }
 
 .player-avatar.small {
-  width: 28px;
-  height: 28px;
-  font-size: 14px;
+  width: 30px;
+  height: 30px;
+  font-size: 1rem;
   margin-right: 10px;
 }
 
+.player-result-item .player-name {
+  flex: 1;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
 .player-result-score {
-  margin-left: auto;
   font-weight: bold;
-  color: #3498db;
+  margin-right: 15px;
 }
 
 .player-result-guesses {
-  margin-left: 15px;
-  color: #aaa;
-  font-size: 12px;
+  font-size: 0.8rem;
+  color: #666;
 }
 
 .game-completion-actions {
   display: flex;
   justify-content: center;
   gap: 15px;
-  margin-top: 25px;
+  margin-top: 20px;
 }
 
 .action-button {
   padding: 10px 20px;
   border: none;
-  border-radius: 4px;
+  border-radius: 5px;
   font-weight: bold;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
 }
 
-.action-button.play-again {
-  background-color: #2ecc71;
+.play-again {
+  background-color: #4caf50;
   color: white;
 }
 
-.action-button.play-again:hover {
-  background-color: #27ae60;
-  transform: translateY(-2px);
+.play-again:hover {
+  background-color: #388e3c;
 }
 
-.action-button.back-home {
-  background-color: #3498db;
-  color: white;
+.back-home {
+  background-color: #f5f5f5;
+  color: #333;
 }
 
-.action-button.back-home:hover {
-  background-color: #2980b9;
-  transform: translateY(-2px);
+.back-home:hover {
+  background-color: #e0e0e0;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+/* Responsive styles */
+@media (max-width: 900px) {
+  .multiplayer-game-container {
+    flex-direction: column;
+  }
+  
+  .sidebar {
+    width: 100%;
+    max-width: 450px;
+  }
+}
+
+@media (max-width: 600px) {
+  .game-completion-modal {
+    padding: 15px;
+  }
+  
+  .podium-large .winner-card {
+    width: 90px;
+  }
+  
+  .game-completion-actions {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .action-button {
+    width: 100%;
+    max-width: 200px;
+  }
 } 

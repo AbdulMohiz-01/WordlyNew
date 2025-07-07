@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import type { Room } from '../../services/RoomService';
+import type { Room, PlayerStatus } from '../../services/RoomService';
 import { UserService } from '../../services/UserService';
 
 interface Player {
@@ -22,6 +22,7 @@ interface Player {
   position?: number; // Position for winners
   justWon?: boolean; // Flag to indicate player just won for animation
   finishTime?: number; // Timestamp when player reached target score
+  completedAt?: number; // Timestamp when player completed the game
 }
 
 interface PlayerScoresProps {
@@ -131,7 +132,7 @@ const PlayerScores = ({ room }: PlayerScoresProps) => {
   const [players, setPlayers] = useState<Player[]>(initializePlayers());
   const [lastUpdated, setLastUpdated] = useState<string | null>(null);
   const prevPlayersRef = useRef<Player[]>(initializePlayers());
-  const [showCelebration] = useState<string | null>(null);
+  const [showCelebration, setShowCelebration] = useState<string | null>(null);
 
   // Update players when room data changes
   useEffect(() => {
@@ -154,11 +155,28 @@ const PlayerScores = ({ room }: PlayerScoresProps) => {
           }
         }
         
+        // Check if player just completed the game
+        let justWon = false;
+        if (prevPlayer && 
+            prevPlayer.status !== 'completed' && 
+            player.status === 'completed' && 
+            player.isWinner) {
+          justWon = true;
+          // setShowCelebration(`${player.name} has completed the game!`);
+          
+          // // Clear celebration message after 3 seconds
+          // setTimeout(() => {
+          //   setShowCelebration(null);
+          // }, 3000);
+        }
+        
         return {
           ...player,
           guesses: player.guesses || [],
           isCurrentUser: player.id === currentUserId,
-          scoreChange
+          scoreChange,
+          justWon,
+          finishTime: player.completedAt // Use completedAt as finishTime
         };
       });
       
@@ -171,21 +189,45 @@ const PlayerScores = ({ room }: PlayerScoresProps) => {
     prevPlayersRef.current = players;
   }, [players]);
 
-  // Get all completed players (those who reached the target score)
-  const completedPlayers = players.filter(player => player.result === 'won' && player.position);
+  // Get completed players (those who have completed the game)
+  const completedPlayers = players.filter(player => player.status === 'completed');
   
-  // Get top 3 players for the podium
-  const podiumPlayers = completedPlayers.filter(player => player.position && player.position <= 3);
-  const sortedPodiumPlayers = [...podiumPlayers].sort((a, b) => (a.position || 999) - (b.position || 999));
+  // Sort completed players by position if available, otherwise by score
+  const sortedCompletedPlayers = [...completedPlayers].sort((a, b) => {
+    // First try to sort by position
+    if (a.position && b.position) {
+      return a.position - b.position;
+    }
+    // Then by score (higher score first)
+    if (a.score !== b.score) {
+      return b.score - a.score;
+    }
+    // Then by completion time if available
+    if (a.completedAt && b.completedAt) {
+      return a.completedAt - b.completedAt;
+    }
+    return 0;
+  });
   
-  // Get players who finished but aren't in the top 3
-  const otherFinishedPlayers = completedPlayers.filter(player => player.position && player.position > 3);
+  // Assign positions to top 3 players if not already assigned
+  const podiumPlayers = sortedCompletedPlayers.slice(0, 3).map((player, index) => ({
+    ...player,
+    position: player.position || index + 1
+  }));
+  
+  // Get remaining players (not in top 3)
+  const otherCompletedPlayers = sortedCompletedPlayers.length > 3 
+    ? sortedCompletedPlayers.slice(3).map((player, index) => ({
+        ...player,
+        position: player.position || index + 4
+      }))
+    : [];
   
   // Get active players (still playing)
   const activePlayers = players.filter(player => player.status === 'playing');
   
-  // Combine other finished players and active players for the main list
-  const mainListPlayers = [...otherFinishedPlayers, ...activePlayers];
+  // Combine other completed players and active players for the main list
+  const mainListPlayers = [...otherCompletedPlayers, ...activePlayers];
   
   // Sort main list by score in descending order
   const sortedMainListPlayers = [...mainListPlayers].sort((a, b) => b.score - a.score);
@@ -222,11 +264,12 @@ const PlayerScores = ({ room }: PlayerScoresProps) => {
     }
 
     return (
-      <div className="player-guess-count">
-        <div className="guess-count-indicator">
-          {player.guesses.length} {player.guesses.length === 1 ? 'guess' : 'guesses'} made
-        </div>
-      </div>
+      // <div className="player-guess-count">
+      //   <div className="guess-count-indicator">
+      //     {player.guesses.length} {player.guesses.length === 1 ? 'guess' : 'guesses'} made
+      //   </div>
+      // </div>
+      <></>
     );
   };
 
@@ -246,9 +289,9 @@ const PlayerScores = ({ room }: PlayerScoresProps) => {
         </div>
       )}
       
-      {sortedPodiumPlayers.length > 0 && (
+      {podiumPlayers.length > 0 && (
         <div className="winners-podium">
-          {sortedPodiumPlayers.map((player) => (
+          {podiumPlayers.map((player) => (
             <div 
               key={player.id}
               className={`winner-card position-${player.position} ${player.isCurrentUser ? 'current-user' : ''} ${player.justWon ? 'just-won' : ''}`}
@@ -282,7 +325,7 @@ const PlayerScores = ({ room }: PlayerScoresProps) => {
         {sortedMainListPlayers.map((player) => (
           <div 
             key={player.id} 
-            className={`player-score-card ${player.isCurrentUser ? 'current-user' : ''} ${getScoreChangeClass(player)} ${player.result === 'won' ? 'finished' : ''}`}
+            className={`player-score-card ${player.isCurrentUser ? 'current-user' : ''} ${getScoreChangeClass(player)} ${player.status === 'completed' ? 'finished' : ''}`}
           >
             {player.position && (
               <div className="regular-position-badge">{player.position}</div>

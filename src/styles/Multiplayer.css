@@ -311,7 +311,7 @@
 
 .status-ready {
   background-color: #2ecc71;
-  color: white;
+  /* color: white; */
 }
 
 .ready-button {
